@@ -34,12 +34,6 @@ export const EMOTIONS = [
     tint: "#edf8f0",
     colorName: "초록",
   },
-  {
-    value: "love",
-    label: "사랑",
-    color: "#ec4899",
-    tint: "#fdf2f8",
-  },
 ] as const;
 
 export type Emotion = (typeof EMOTIONS)[number]["value"];

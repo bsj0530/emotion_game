@@ -13,7 +13,6 @@ import sadImage from "../assets/sad.png";
 import angryImage from "../assets/angry.png";
 import scaredImage from "../assets/scared.png";
 import calmImage from "../assets/calm.png";
-import loveImage from "../assets/love.png";
 
 import correctSfx from "../assets/sounds/correct.mp3";
 import wrongSfx from "../assets/sounds/wrong.mp3";
@@ -30,11 +29,11 @@ const emotionImages: Record<Emotion, string> = {
   angry: angryImage,
   scared: scaredImage,
   calm: calmImage,
-  love: loveImage,
 };
 
 const EFFECT_DURATION = 450;
 const NEXT_QUESTION_DELAY = 800;
+const RETRY_MESSAGE = "다시 시도해 보세요.";
 
 const animationStyles = `
   @keyframes quiz-shake {
@@ -84,7 +83,10 @@ function Quiz({ session }: { session: GameSession }) {
   const timers = useRef<Set<number>>(new Set());
   const coverButton = useRef<HTMLButtonElement>(null);
   const firstOption = useRef<HTMLButtonElement>(null);
+
   const audioRef = useRef<Record<SoundType, HTMLAudioElement> | null>(null);
+  const soundGeneration = useRef(0);
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   const total = questions.length;
   const question = questions[index]!;
@@ -110,11 +112,20 @@ function Quiz({ session }: { session: GameSession }) {
       pendingTimers.forEach((timer) => window.clearTimeout(timer));
       pendingTimers.clear();
 
+      soundGeneration.current += 1;
+
       for (const audio of [correctAudio, wrongAudio]) {
+        audio.onended = null;
+        audio.onerror = null;
         audio.pause();
         audio.currentTime = 0;
       }
 
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+
+      utteranceRef.current = null;
       audioRef.current = null;
       confetti.reset();
     };
@@ -142,25 +153,91 @@ function Quiz({ session }: { session: GameSession }) {
     timers.current.clear();
   }
 
+  function stopSpeech() {
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+
+    utteranceRef.current = null;
+  }
+
+  function speakRetry() {
+    if (!("speechSynthesis" in window)) return;
+
+    stopSpeech();
+
+    const utterance = new SpeechSynthesisUtterance(RETRY_MESSAGE);
+
+    utterance.lang = "ko-KR";
+    utterance.rate = 0.85;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+
+    const koreanVoice = window.speechSynthesis
+      .getVoices()
+      .find((voice) => voice.lang.toLowerCase().startsWith("ko"));
+
+    if (koreanVoice) {
+      utterance.voice = koreanVoice;
+    }
+
+    utterance.onend = utterance.onerror = () => {
+      if (utteranceRef.current === utterance) {
+        utteranceRef.current = null;
+      }
+    };
+
+    utteranceRef.current = utterance;
+    window.speechSynthesis.speak(utterance);
+  }
+
   function stopSounds() {
+    soundGeneration.current += 1;
+    stopSpeech();
+
     if (!audioRef.current) return;
 
     Object.values(audioRef.current).forEach((audio) => {
+      audio.onended = null;
+      audio.onerror = null;
       audio.pause();
       audio.currentTime = 0;
     });
   }
 
-  function playSound(type: SoundType) {
-    const audio = audioRef.current?.[type];
-    if (!audio) return;
-
+  function playSound(type: SoundType, onEnded?: () => void) {
     stopSounds();
 
+    const audio = audioRef.current?.[type];
+    const generation = soundGeneration.current;
+
+    if (!audio) {
+      onEnded?.();
+      return;
+    }
+
+    let completed = false;
+
+    function complete() {
+      if (completed || generation !== soundGeneration.current) return;
+
+      completed = true;
+
+      if (audio) {
+        audio.onended = null;
+        audio.onerror = null;
+      }
+
+      onEnded?.();
+    }
+
+    audio.onended = complete;
+    audio.onerror = complete;
+
     try {
-      void audio.play().catch(() => {});
+      void audio.play().catch(complete);
     } catch {
-      // 효과음 재생에 실패해도 게임은 계속 진행합니다.
+      complete();
     }
   }
 
@@ -241,9 +318,9 @@ function Quiz({ session }: { session: GameSession }) {
     const isCorrect = emotion === question.answer;
 
     triggerEffects(isCorrect);
-    playSound(isCorrect ? "correct" : "wrong");
 
     if (isCorrect) {
+      playSound("correct");
       setStars((previous) => previous + 1);
       setFeedback("⭐ 맞았어요!");
 
@@ -257,7 +334,11 @@ function Quiz({ session }: { session: GameSession }) {
         resetQuestion();
       }, NEXT_QUESTION_DELAY);
     } else {
-      setFeedback("다시 골라볼까요?");
+      setFeedback(RETRY_MESSAGE);
+
+      // 오답 효과음이 끝난 뒤 TTS를 재생합니다.
+      // 재생에 실패하면 TTS로 바로 안내합니다.
+      playSound("wrong", speakRetry);
 
       schedule(() => {
         setSelected(null);
@@ -396,7 +477,7 @@ function Quiz({ session }: { session: GameSession }) {
                 role="status"
                 className="absolute inset-0 flex items-center justify-center text-sm font-semibold text-slate-500"
               >
-                写真을 불러오는 중…
+                사진을 불러오는 중…
               </div>
             )}
 
@@ -437,7 +518,7 @@ function Quiz({ session }: { session: GameSession }) {
 
           <section
             aria-label="감정 선택"
-            className="grid shrink-0 grid-cols-3 gap-2 sm:grid-cols-6 sm:gap-4"
+            className="grid shrink-0 grid-cols-5 gap-2 sm:gap-4"
           >
             {EMOTIONS.map((emotion, emotionIndex) => (
               <button
@@ -472,7 +553,7 @@ function Quiz({ session }: { session: GameSession }) {
                   src={emotionImages[emotion.value]}
                   alt=""
                   draggable={false}
-                  className="size-[clamp(32px,8vh,100px)] max-w-full object-contain"
+                  className="size-[clamp(32px,10vh,110px)] max-w-full object-contain"
                 />
 
                 <strong className="text-xs font-black tracking-tight whitespace-nowrap sm:text-xl lg:text-2xl">
