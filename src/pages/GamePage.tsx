@@ -564,20 +564,9 @@ function Quiz({ session }: { session: GameSession }) {
             ))}
           </section>
 
-          <footer className="flex min-h-8 shrink-0 items-center justify-center">
-            <p
-              role="status"
-              aria-live="polite"
-              className={[
-                "text-center text-xs leading-5 font-bold sm:text-base",
-                feedback === "⭐ 맞았어요!"
-                  ? "text-emerald-700"
-                  : "text-slate-600",
-              ].join(" ")}
-            >
-              {feedback}
-            </p>
-          </footer>
+          <p role="status" aria-live="polite" className="sr-only">
+            {feedback}
+          </p>
         </div>
 
         {showExplosion && (
