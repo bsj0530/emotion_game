@@ -338,9 +338,11 @@ function Quiz({ session }: { session: GameSession }) {
 
       // 오답 효과음이 끝난 뒤 TTS를 재생합니다.
       // 재생에 실패하면 TTS로 바로 안내합니다.
-      playSound("wrong", speakRetry);
-
+      playSound("wrong");
       schedule(() => {
+        stopSounds();
+        speakRetry();
+
         setSelected(null);
         setBusy(false);
         locked.current = false;
