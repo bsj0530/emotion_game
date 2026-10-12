@@ -168,17 +168,9 @@ export default function HomePage({ onStart }: Props) {
           <div className="min-h-0 flex-1 p-3 sm:p-4">
             {photos.length === 0 ? (
               <div className="flex h-full min-h-0 flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-amber-200 bg-amber-50/40 px-4 text-center">
-                <span aria-hidden="true" className="text-5xl sm:text-6xl">
-                  🖼️
-                </span>
-
                 <h3 className="text-lg font-extrabold sm:text-2xl">
-                  어떤 상황을 살펴볼까요?
+                  원하는 사진을 업로드 해주세요!
                 </h3>
-
-                <p className="text-xs leading-6 text-slate-500 sm:text-sm">
-                  사진 1장부터 원하는 만큼 선택할 수 있어요.
-                </p>
               </div>
             ) : (
               <div className="grid h-full min-h-0 grid-cols-2 grid-rows-5 gap-2 sm:grid-cols-5 sm:grid-rows-2 sm:gap-3">
