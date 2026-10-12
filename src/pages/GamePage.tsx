@@ -340,7 +340,6 @@ function Quiz({ session }: { session: GameSession }) {
       // 재생에 실패하면 TTS로 바로 안내합니다.
       playSound("wrong");
       schedule(() => {
-        stopSounds();
         speakRetry();
 
         setSelected(null);
