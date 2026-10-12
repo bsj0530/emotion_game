@@ -1,9 +1,45 @@
 export const EMOTIONS = [
-  { value: "happy", label: "기쁨", color: "#e6ad27", tint: "#fff6da", colorName: "노랑" },
-  { value: "sad", label: "슬픔", color: "#4787c4", tint: "#eaf4ff", colorName: "파랑" },
-  { value: "angry", label: "화남", color: "#d65757", tint: "#fff0ef", colorName: "빨강" },
-  { value: "scared", label: "무서움", color: "#35465c", tint: "#eef1f6", colorName: "검정" },
-  { value: "calm", label: "평온", color: "#409976", tint: "#edf8f0", colorName: "초록" },
+  {
+    value: "happy",
+    label: "기쁨",
+    color: "#e6ad27",
+    tint: "#fff6da",
+    colorName: "노랑",
+  },
+  {
+    value: "sad",
+    label: "슬픔",
+    color: "#4787c4",
+    tint: "#eaf4ff",
+    colorName: "파랑",
+  },
+  {
+    value: "angry",
+    label: "화남",
+    color: "#d65757",
+    tint: "#fff0ef",
+    colorName: "빨강",
+  },
+  {
+    value: "scared",
+    label: "무서움",
+    color: "#35465c",
+    tint: "#eef1f6",
+    colorName: "검정",
+  },
+  {
+    value: "calm",
+    label: "평온",
+    color: "#409976",
+    tint: "#edf8f0",
+    colorName: "초록",
+  },
+  {
+    value: "love",
+    label: "사랑",
+    color: "#ec4899",
+    tint: "#fdf2f8",
+  },
 ] as const;
 
 export type Emotion = (typeof EMOTIONS)[number]["value"];

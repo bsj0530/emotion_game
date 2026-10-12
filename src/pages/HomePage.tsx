@@ -107,16 +107,6 @@ export default function HomePage({ onStart }: Props) {
   return (
     <main className="h-dvh overflow-hidden bg-[#fcfaf5] p-3 font-sans text-slate-800 sm:p-5">
       <div className="mx-auto flex h-full min-h-0 w-full max-w-7xl flex-col gap-3 sm:gap-4">
-        <header className="shrink-0 text-center">
-          <h1 className="text-2xl font-black tracking-tight sm:text-3xl">
-            상황 감정 맞추기
-          </h1>
-
-          <p className="mt-1 text-xs text-slate-500 sm:text-sm">
-            원하는 만큼 사진을 선택하고 정답 감정을 설정해 주세요.
-          </p>
-        </header>
-
         <section
           aria-label="게임 준비"
           className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border-2 border-amber-200 bg-white shadow-lg shadow-amber-900/5 sm:rounded-3xl"

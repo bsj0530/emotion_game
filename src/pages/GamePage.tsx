@@ -13,6 +13,7 @@ import sadImage from "../assets/sad.png";
 import angryImage from "../assets/angry.png";
 import scaredImage from "../assets/scared.png";
 import calmImage from "../assets/calm.png";
+import loveImage from "../assets/love.png";
 
 import correctSfx from "../assets/sounds/correct.mp3";
 import wrongSfx from "../assets/sounds/wrong.mp3";
@@ -29,6 +30,7 @@ const emotionImages: Record<Emotion, string> = {
   angry: angryImage,
   scared: scaredImage,
   calm: calmImage,
+  love: loveImage,
 };
 
 const EFFECT_DURATION = 450;
@@ -435,7 +437,7 @@ function Quiz({ session }: { session: GameSession }) {
 
           <section
             aria-label="감정 선택"
-            className="grid shrink-0 grid-cols-5 gap-2 sm:gap-4"
+            className="grid shrink-0 grid-cols-3 gap-2 sm:grid-cols-6 sm:gap-4"
           >
             {EMOTIONS.map((emotion, emotionIndex) => (
               <button
@@ -470,7 +472,7 @@ function Quiz({ session }: { session: GameSession }) {
                   src={emotionImages[emotion.value]}
                   alt=""
                   draggable={false}
-                  className="size-[clamp(32px,10vh,110px)] max-w-full object-contain"
+                  className="size-[clamp(32px,8vh,100px)] max-w-full object-contain"
                 />
 
                 <strong className="text-xs font-black tracking-tight whitespace-nowrap sm:text-xl lg:text-2xl">
