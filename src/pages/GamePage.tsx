@@ -315,8 +315,7 @@ function Quiz({ session }: { session: GameSession }) {
     setBusy(true);
     setSelected(emotion);
 
-    const isCorrect = emotion === question.answer;
-
+    const isCorrect = question.answer.includes(emotion);
     triggerEffects(isCorrect);
 
     if (isCorrect) {

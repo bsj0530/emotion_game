@@ -32,7 +32,7 @@ async function readPhoto(file: File): Promise<GamePhoto> {
     id: crypto.randomUUID(),
     name: file.name,
     src,
-    answer: "",
+    answer: [],
   };
 }
 
@@ -45,7 +45,7 @@ export default function HomePage({ onStart }: Props) {
   const [error, setError] = useState("");
   const [page, setPage] = useState(0);
 
-  const answered = photos.filter((photo) => photo.answer !== "").length;
+  const answered = photos.filter((photo) => photo.answer.length > 0).length;
   const ready = photos.length > 0 && answered === photos.length && !loading;
 
   const pageCount = Math.max(1, Math.ceil(photos.length / PAGE_SIZE));
@@ -78,9 +78,19 @@ export default function HomePage({ onStart }: Props) {
     }
   }
 
-  function changeAnswer(id: string, answer: Emotion | "") {
+  function changeAnswer(id: string, emotion: Emotion, checked: boolean) {
     setPhotos((previous) =>
-      previous.map((photo) => (photo.id === id ? { ...photo, answer } : photo)),
+      previous.map((photo) => {
+        if (photo.id !== id) return photo;
+
+        const answer = checked
+          ? photo.answer.includes(emotion)
+            ? photo.answer
+            : [...photo.answer, emotion]
+          : photo.answer.filter((value) => value !== emotion);
+
+        return { ...photo, answer };
+      }),
     );
   }
 
@@ -93,7 +103,9 @@ export default function HomePage({ onStart }: Props) {
     if (!ready) return;
 
     const questions: Question[] = photos.flatMap((photo) =>
-      photo.answer === "" ? [] : [{ ...photo, answer: photo.answer }],
+      photo.answer.length === 0
+        ? []
+        : [{ ...photo, answer: [...photo.answer] }],
     );
 
     onStart({
@@ -163,7 +175,7 @@ export default function HomePage({ onStart }: Props) {
                 </h3>
               </div>
             ) : (
-              <div className="grid h-full min-h-0 grid-cols-2 grid-rows-5 gap-2 sm:grid-cols-5 sm:grid-rows-2 sm:gap-3">
+              <div className="grid h-full min-h-0 auto-rows-[minmax(240px,1fr)] grid-cols-2 gap-2 overflow-y-auto sm:grid-cols-5 sm:gap-3">
                 {visiblePhotos.map((photo, index) => {
                   const number = startIndex + index + 1;
 
@@ -194,34 +206,48 @@ export default function HomePage({ onStart }: Props) {
                         </button>
                       </div>
 
-                      <div className="shrink-0 border-t border-slate-100 p-1.5 sm:p-3">
-                        <label
-                          htmlFor={`answer-${photo.id}`}
-                          className="sr-only"
-                        >
-                          {number}번 사진의 정답 감정
-                        </label>
+                      <fieldset className="shrink-0 border-t border-slate-100 p-1.5 sm:p-3">
+                        <legend className="sr-only">
+                          {number}번 사진의 정답 감정, 여러 개 선택 가능
+                        </legend>
 
-                        <select
-                          id={`answer-${photo.id}`}
-                          value={photo.answer}
-                          onChange={(event) =>
-                            changeAnswer(
-                              photo.id,
-                              event.target.value as Emotion | "",
-                            )
-                          }
-                          className="h-7 w-full rounded-lg border border-slate-200 bg-slate-50 px-1 text-[11px] font-semibold text-slate-700 focus:border-amber-400 focus:outline-2 focus:outline-amber-400 sm:h-10 sm:px-2 sm:text-sm"
-                        >
-                          <option value="">정답 감정 선택</option>
+                        <p className="mb-1.5 text-[10px] font-bold text-slate-500 sm:text-xs">
+                          정답 감정 · 복수 선택
+                        </p>
 
-                          {EMOTIONS.map((emotion) => (
-                            <option key={emotion.value} value={emotion.value}>
-                              {emotion.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+                        <div className="grid grid-cols-2 gap-1">
+                          {EMOTIONS.map((emotion) => {
+                            const checked = photo.answer.includes(
+                              emotion.value,
+                            );
+
+                            return (
+                              <label
+                                key={emotion.value}
+                                className={`flex cursor-pointer items-center gap-1 rounded-lg border px-1.5 py-1.5 text-[11px] font-semibold sm:text-xs ${
+                                  checked
+                                    ? "border-amber-400 bg-amber-50 text-amber-950"
+                                    : "border-slate-200 bg-slate-50 text-slate-700"
+                                }`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={(event) =>
+                                    changeAnswer(
+                                      photo.id,
+                                      emotion.value,
+                                      event.target.checked,
+                                    )
+                                  }
+                                  className="size-4 shrink-0 accent-amber-500 focus-visible:outline-2 focus-visible:outline-blue-500"
+                                />
+                                <span>{emotion.label}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </fieldset>
                     </article>
                   );
                 })}
@@ -267,7 +293,7 @@ export default function HomePage({ onStart }: Props) {
                 ? `${photos.length}문제 준비 완료!`
                 : photos.length === 0
                   ? "사진을 1장 이상 선택해 주세요."
-                  : `정답 감정을 ${photos.length - answered}개 더 설정해 주세요.`}
+                  : `사진 ${photos.length - answered}장의 정답 감정을 하나 이상 체크해 주세요.`}
             </p>
 
             <button

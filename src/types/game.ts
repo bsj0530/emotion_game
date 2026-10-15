@@ -42,17 +42,25 @@ export type GamePhoto = {
   id: string;
   name: string;
   src: string;
-  answer: Emotion | "";
+  answer: Emotion[];
 };
 
-export type Question = Omit<GamePhoto, "answer"> & { answer: Emotion };
-export type GameSession = { id: string; questions: Question[] };
+export type Question = Omit<GamePhoto, "answer"> & {
+  answer: Emotion[];
+};
+
+export type GameSession = {
+  id: string;
+  questions: Question[];
+};
 
 export function shuffle<T>(items: readonly T[]): T[] {
   const result = [...items];
+
   for (let i = result.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [result[i], result[j]] = [result[j]!, result[i]!];
   }
+
   return result;
 }
